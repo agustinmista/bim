@@ -9,4 +9,6 @@ out =  crayons*=0.3 <|> refV (crayons#>G)
       -crayons      <|> lvl R ((+)100) crayons
 
 
-test = runProc $ save out "../img/out.bmp"
+test = runProc $  do
+    save out "../img/out.bmp"
+    save (bright ((+)50) tools) "../img/out2.bmp"
