@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
-module Geometric where
+module Operations.Geometric (
+    refH, refV, rot90, rot180, rot270, (<|>), (</>)
+) where
 
 import Image
 import Proc
@@ -32,6 +34,7 @@ rot270 img = do
     create (\(row,col) -> m!(m~>H - col + 1, row)) (m~>H, m~>W)
 
 -- Une dos imágenes, una al lado de la otra
+infix 4 <|>
 (<|>) :: Image a => Proc a -> Proc a -> Proc a
 img1 <|> img2 =
     do left  <- img1
@@ -44,6 +47,7 @@ img1 <|> img2 =
                in create f (left~>W + right~>W, left~>H)
 
 -- Une dos imágenes, una encima de la otra
+infix 3 </>
 (</>) :: Image a => Proc a -> Proc a -> Proc a
 img1 </> img2 =
     do upper <- img2    -- Ésto es raro, parece que las imágenes quedan

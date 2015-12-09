@@ -4,7 +4,7 @@ module Image (
     module Image,
     module Pixel,
     module Constants
-)where
+) where
 
 import Pixel
 import Proc

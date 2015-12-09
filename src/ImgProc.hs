@@ -5,10 +5,10 @@ module ImgProc (
     module Image,
     module Proc,
     module Constants,
-    module Arithmetic,
-    module PointOperators,
-    module Geometric
-)where
+    module Operations.Arithmetic,
+    module Operations.Point,
+    module Operations.Geometric
+) where
 
 import Codec.BMP
 import Data.Word
@@ -21,9 +21,9 @@ import Image
 import Proc
 import Pixel
 import Constants
-import Arithmetic
-import PointOperators
-import Geometric
+import Operations.Arithmetic
+import Operations.Point
+import Operations.Geometric
 
 -- Represento imágenes como matrices de pixeles
 type MatImg = Matrix Pixel
@@ -39,7 +39,6 @@ instance Image MatImg where
     pixelTrans = pixelTransMatrix
     localTrans = undefined
     fold = undefined
-
 
 
 -- Cargar una imagen desde un archivo-------------------------------------------

@@ -4,7 +4,9 @@ crayons = load "../img/crayons.bmp" :: Proc MatImg
 lena    = load "../img/lena.bmp"    :: Proc MatImg
 tools   = load "../img/tools.bmp"   :: Proc MatImg
 
-out = refH tools <|> refV (tools#>G)
+out =  crayons*=0.3 <|> refV (crayons#>G)
+                    </>
+      -crayons      <|> lvl R ((+)100) crayons
 
 
-test = runProc $ save (bright ((+) 100) tools) "../img/test.bmp"
+test = runProc $ save out "../img/out.bmp"

@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
-module PointOperators where
+module Operations.Point (
+    (#>), thd_avg, thd, bright, lvl
+) where
 
 import Image
 import Proc

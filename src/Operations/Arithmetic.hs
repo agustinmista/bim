@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
-module Arithmetic where
+module Operations.Arithmetic (
+    (*=), blend
+) where
 
 import Image
 import Proc
