@@ -4,43 +4,42 @@ module Operations.Geometric (
 ) where
 
 import Image
-import Proc
 
 -- Reflexiones
-refH :: Image a => Proc a -> Proc a
-refH img = do
-    m <- img
-    create (\(row,col) -> m!(m~>H - row + 1, col)) (dim m)
+refH :: Image a => Result a -> Result a
+refH img =
+    do m <- img
+       create (\(row,col) -> m!(m~>H - row + 1, col)) (dim m)
 
-refV :: Image a => Proc a -> Proc a
-refV img = do
-    m <- img
-    create (\(row,col) -> m!(row, m~>W - col + 1)) (dim m)
+refV :: Image a => Result a -> Result a
+refV img =
+    do m <- img
+       create (\(row,col) -> m!(row, m~>W - col + 1)) (dim m)
 
 -- Rotaciones (sentido horario)
-rot90 :: Image a => Proc a -> Proc a
-rot90 img = do
-    m <- img
-    create (\(row,col) -> m!(col, m~>H - row + 1)) (m~>H, m~>W)
+rot90 :: Image a => Result a -> Result a
+rot90 img =
+    do m <- img
+       create (\(row,col) -> m!(col, m~>W - row + 1)) (m~>H, m~>W)
 
-rot180 :: Image a => Proc a -> Proc a
-rot180 img = do
-    m <- img
-    create (\(row,col) -> m!(m~>H - row + 1, m~>W - col + 1)) (m~>W, m~>H)
+rot180 :: Image a => Result a -> Result a
+rot180 img =
+    do m <- img
+       create (\(row,col) -> m!(m~>H - row + 1, m~>W - col + 1)) (m~>W, m~>H)
 
-rot270 :: Image a => Proc a -> Proc a
-rot270 img = do
-    m <- img
-    create (\(row,col) -> m!(m~>H - col + 1, row)) (m~>H, m~>W)
+rot270 :: Image a => Result a -> Result a
+rot270 img =
+    do m <- img
+       create (\(row,col) -> m!(m~>H - col + 1, row)) (m~>H, m~>W)
 
 -- Une dos imágenes, una al lado de la otra
 infix 4 <|>
-(<|>) :: Image a => Proc a -> Proc a -> Proc a
+(<|>) :: Image a => Result a -> Result a -> Result a
 img1 <|> img2 =
     do left  <- img1
        right <- img2
        if left~>H /= right~>H
-          then failProc "(<|>) : sizes do not match"
+          then throwError "(<|>) : sizes do not match"
           else let f (row,col) = if col <= left~>W
                                  then left !(row, col)
                                  else right!(row, col - left~>W)
@@ -48,12 +47,12 @@ img1 <|> img2 =
 
 -- Une dos imágenes, una encima de la otra
 infix 3 </>
-(</>) :: Image a => Proc a -> Proc a -> Proc a
+(</>) :: Image a => Result a -> Result a -> Result a
 img1 </> img2 =
     do upper <- img2    -- Ésto es raro, parece que las imágenes quedan
        lower <- img1    -- intercambiadas si lo hago de la manera intuitiva
        if upper~>W /= lower~>W
-           then failProc "(</>) : sizes do not match"
+           then throwError "(</>) : sizes do not match"
            else let f (row,col) = if row <= upper~>H
                                   then upper!(row, col)
                                   else lower!(row - upper~>H, col)

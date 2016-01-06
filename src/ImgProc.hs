@@ -3,7 +3,6 @@
 module ImgProc (
     module ImgProc,
     module Image,
-    module Proc,
     module Constants,
     module Operations.Arithmetic,
     module Operations.Point,
@@ -14,42 +13,38 @@ import Codec.BMP
 import Data.Word
 import Prelude     hiding ((!!))
 import Data.Matrix hiding ((!), (<|>))
-import Control.Monad.IO.Class
 import qualified Data.ByteString as BS
 
 import Image
-import Proc
 import Pixel
 import Constants
 import Operations.Arithmetic
 import Operations.Point
 import Operations.Geometric
 
--- Represento imágenes como matrices de pixeles
-type MatImg = Matrix Pixel
+-- Represento mapas de bits como matrices de pixeles
+type Bitmap = Matrix Pixel
 
-instance Image MatImg where
-    load = loadMatrix
-    save = saveMatrix
-    create = createMatrix
+instance Image Bitmap where
+    create = createBitmap
     dim m = (ncols m, nrows m)
     m~>W = ncols m
     m~>H = nrows m
     m!(r,c) = getElem r c m
-    pixelTrans = pixelTransMatrix
+    pixelTrans = pixelTransBitmap
     localTrans = undefined
     fold = undefined
 
 
 -- Cargar una imagen desde un archivo-------------------------------------------
-loadMatrix :: String -> Proc MatImg
-loadMatrix path = liftIO $
+load :: String -> IO (Result Bitmap)
+load path =
     do Right bmp <- readBMP path   -- En caso de error lanza antes una excepción
        let (w,h) = bmpDimensions bmp
        putStrLn $ "Opening " ++ path ++ " (" ++ show w ++ "x" ++ show h ++ ")"
-       return $ toMatrix w h bmp
+       return $ return $ toMatrix w h bmp
 
-toMatrix :: Int -> Int -> BMP -> MatImg
+toMatrix :: Int -> Int -> BMP -> Bitmap
 toMatrix w h = fromList h w . toTuples . BS.foldr (:) [] . unpackBMPToRGBA32
 
 toTuples :: [Word8] -> [Pixel]
@@ -59,15 +54,15 @@ toTuples (r:g:b:_:xs) = (fromIntegral r, fromIntegral g, fromIntegral b) : toTup
 
 
 -- Guardar una imagen a un archivo ---------------------------------------------
-saveMatrix :: Proc MatImg -> String -> Proc ()
-saveMatrix img path =
-    do m <- img
-       (liftIO $
-          do let (r,c) = (nrows m, ncols m)
-             putStrLn $ "Saving  " ++ path ++ " (" ++ show c ++ "x" ++ show r ++ ")"
-             writeBMP path (toBMP r c m))
+save :: String -> Result Bitmap -> IO ()
+save path (Left  err) =
+    putStrLn $ "Error saving image to \"" ++ path ++ "\":\n\t" ++ err
+save path (Right img) =
+    do let (r,c) = (nrows img, ncols img)
+       putStrLn $ "Saving  " ++ path ++ " (" ++ show c ++ "x" ++ show r ++ ")"
+       writeBMP path (toBMP r c img)
 
-toBMP :: Int -> Int -> MatImg -> BMP
+toBMP :: Int -> Int -> Bitmap -> BMP
 toBMP h w = packRGBA32ToBMP w h . BS.pack . fromTuples . toList
 
 fromTuples :: [Pixel] -> [Word8]
@@ -77,16 +72,14 @@ fromTuples ((r,g,b):xs) = [fromIntegral r, fromIntegral g, fromIntegral b, 255] 
 
 
 -- Crear una imagen mediante una función ---------------------------------------
-createMatrix :: (Point2D -> Pixel) -> Point2D -> Proc MatImg
-createMatrix f (w,h) = liftIO $
-       do putStrLn $ "Creating image (" ++ show w ++ "x" ++ show h ++ ")"
-          return $ matrix h w f
+createBitmap :: (Point2D -> Pixel) -> Point2D -> Result Bitmap
+createBitmap f (w,h) = return $ matrix h w f
 --------------------------------------------------------------------------------
 
 -- Transformaciónes ------------------------------------------------------------
 -- De pixel en pixel
-pixelTransMatrix :: (Point2D -> Pixel ->  Pixel) -> Proc MatImg -> Proc MatImg
-pixelTransMatrix f img =
+pixelTransBitmap :: (Point2D -> Pixel ->  Pixel) -> Result Bitmap -> Result Bitmap
+pixelTransBitmap f img =
     do m <- img
-       createMatrix (\pos-> validate (f (dim m) (m!pos))) (dim m)
+       createBitmap (\pos-> validate (f (dim m) (m!pos))) (dim m)
 --------------------------------------------------------------------------------
