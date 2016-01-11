@@ -20,6 +20,10 @@ type Result a = Either String a
 throwError :: String -> Result a
 throwError = Left
 
+-- Métodos de conversión RGB -> B&W
+data Method = LIG   -- Lightness
+            | LUM   -- Luminosity
+            | AVG   -- Average
 
 -- Representamos imágenes y operaciones primitivas sobre ellas
 class Image a where
@@ -33,6 +37,6 @@ class Image a where
     -- Transformación de pixel en pixel
     pixelTrans :: (Point2D -> Pixel ->  Pixel) -> Result a -> Result a
     -- Transformación de vecinos en pixel, con determinado radio
-    localTrans :: (a -> Point2D -> Pixel) -> Int -> Result a -> Result a
+    localTrans :: (Point2D -> a -> Pixel) -> Int -> Result a -> Result a
     -- Capacidad de consumirse mediante fold
-    fold :: (Pixel -> b -> b) -> Result a -> b
+    fold :: (Pixel -> b -> b) -> b -> Result a -> Result b

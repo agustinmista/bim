@@ -6,13 +6,15 @@ module ImgProc (
     module Constants,
     module Operations.Arithmetic,
     module Operations.Point,
-    module Operations.Geometric
+    module Operations.Geometric,
+    module Operations.Histogram
 ) where
 
 import Codec.BMP
 import Data.Word
-import Prelude     hiding ((!!))
-import Data.Matrix hiding ((!), (<|>))
+import Prelude       hiding ((!!))
+import Data.Matrix   hiding ((!), (<|>))
+import qualified Data.Foldable   as F
 import qualified Data.ByteString as BS
 
 import Image
@@ -21,6 +23,7 @@ import Constants
 import Operations.Arithmetic
 import Operations.Point
 import Operations.Geometric
+import Operations.Histogram
 
 -- Represento mapas de bits como matrices de pixeles
 type Bitmap = Matrix Pixel
@@ -33,7 +36,7 @@ instance Image Bitmap where
     m!(r,c) = getElem r c m
     pixelTrans = pixelTransBitmap
     localTrans = undefined
-    fold = undefined
+    fold = foldBitmap
 
 
 -- Cargar una imagen desde un archivo-------------------------------------------
@@ -81,5 +84,23 @@ createBitmap f (w,h) = return $ matrix h w f
 pixelTransBitmap :: (Point2D -> Pixel ->  Pixel) -> Result Bitmap -> Result Bitmap
 pixelTransBitmap f img =
     do m <- img
-       createBitmap (\pos-> validate (f (dim m) (m!pos))) (dim m)
+       createBitmap (\pos -> validate (f (dim m) (m!pos))) (dim m)
+
+
+-- De vecinos en pixel, con determinado radio
+-- localTransBitmap :: (Point2D -> Bitmap -> Pixel) -> Int -> Result Bitmap -> Result Bitmap
+-- localTransBitmap f r img =
+--     do m <- img
+--        createBitmap (\pos -> validate (f (dim m) (neighbours pos))) (dim m)
+--             where neighbours pos = matrix (2*r+1) (2*r+1) (\npos ->
+--                                         if isInside pos npos (dim m) then
+--                                             )
+
+--------------------------------------------------------------------------------
+
+-- Fold ------------------------------------------------------------------------
+foldBitmap :: (Pixel -> b -> b) -> b -> Result Bitmap -> Result b
+foldBitmap f e img =
+    do m <- img
+       return $ F.foldr f e m
 --------------------------------------------------------------------------------

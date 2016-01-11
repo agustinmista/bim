@@ -33,7 +33,7 @@ rot270 img =
        create (\(row,col) -> m!(m~>H - col + 1, row)) (m~>H, m~>W)
 
 -- Une dos imágenes, una al lado de la otra
-infix 4 <|>
+infixl 4 <|>
 (<|>) :: Image a => Result a -> Result a -> Result a
 img1 <|> img2 =
     do left  <- img1
@@ -46,7 +46,7 @@ img1 <|> img2 =
                in create f (left~>W + right~>W, left~>H)
 
 -- Une dos imágenes, una encima de la otra
-infix 3 </>
+infixl 3 </>
 (</>) :: Image a => Result a -> Result a -> Result a
 img1 </> img2 =
     do upper <- img2    -- Ésto es raro, parece que las imágenes quedan
