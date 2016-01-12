@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module ImgProc (
-    module ImgProc,
+module BIM (
+    module BIM,
     module Image,
     module Constants,
     module Operations.Arithmetic,
@@ -12,7 +12,8 @@ module ImgProc (
 
 import Codec.BMP
 import Data.Word
-import Prelude       hiding ((!!))
+import Control.Exception (catch, IOException)
+import Prelude       hiding ((!!), catch)
 import Data.Matrix   hiding ((!), (<|>))
 import qualified Data.Foldable   as F
 import qualified Data.ByteString as BS
@@ -40,12 +41,32 @@ instance Image Bitmap where
 
 
 -- Cargar una imagen desde un archivo-------------------------------------------
+-- load :: String -> IO (Result Bitmap)
+-- load path =
+--     do readed <- catch (readBMP path)
+--                        (\e -> do let err = show (e :: IOException)
+--                                  putStrLn $ "IOException: " ++ err
+--                                  return $ Left IOError)
+--        case readed of
+--            Right bmp -> do
+--                let (w,h) = bmpDimensions bmp
+--                putStrLn $ "Opening " ++ path ++ " (" ++ show w ++ "x" ++ show h ++ ")"
+--                return $ return $ toMatrix w h bmp
+--            Left err -> return $ throwError (show err)
 load :: String -> IO (Result Bitmap)
-load path =
-    do Right bmp <- readBMP path   -- En caso de error lanza antes una excepción
-       let (w,h) = bmpDimensions bmp
-       putStrLn $ "Opening " ++ path ++ " (" ++ show w ++ "x" ++ show h ++ ")"
-       return $ return $ toMatrix w h bmp
+load path = do
+    putStr $ "Opening file  \"" ++ path ++ "\":\t"
+    catch (do readed <- readBMP path
+              case readed of
+                 Right bmp -> do
+                         putStrLn "Ok"
+                         let (w,h) = bmpDimensions bmp
+                         return $ return $ toMatrix w h bmp
+                 Left err -> do
+                         putStrLn "Fail"
+                         return $ throwError $ path ++ ": " ++ (show err))
+          (\e -> do putStrLn "Fail"
+                    return $ throwError $ path ++ ": " ++ show (e :: IOException))
 
 toMatrix :: Int -> Int -> BMP -> Bitmap
 toMatrix w h = fromList h w . toTuples . BS.foldr (:) [] . unpackBMPToRGBA32
@@ -59,7 +80,7 @@ toTuples (r:g:b:_:xs) = (fromIntegral r, fromIntegral g, fromIntegral b) : toTup
 -- Guardar una imagen a un archivo ---------------------------------------------
 save :: String -> Result Bitmap -> IO ()
 save path (Left  err) =
-    putStrLn $ "Error saving image to \"" ++ path ++ "\":\n\t" ++ err
+    putStrLn $ "Error saving image to \"" ++ path ++ "\":\t" ++ err
 save path (Right img) =
     do let (r,c) = (nrows img, ncols img)
        putStrLn $ "Saving  " ++ path ++ " (" ++ show c ++ "x" ++ show r ++ ")"
