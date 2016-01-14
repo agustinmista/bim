@@ -8,10 +8,9 @@ module Image (
 
 import Pixel
 import Constants
-import Data.Foldable
 
 type Point2D = (Int, Int)
-data Dim     = W | H
+data Dim     =   X | Y
 
 -- Representamos un resultado como una computación que
 -- puede fallar, devolviendo un String, o bien tener éxito.
@@ -28,9 +27,9 @@ data Method = LIG   -- Lightness
 -- Representamos imágenes y operaciones primitivas sobre ellas
 class Image a where
     create :: (Point2D -> Pixel) -> Point2D -> Result a
-    -- Obtener dimensiones de una imagen
+    -- Obtener dimensiones de una imagen (ancho x alto)
     dim :: a -> Point2D
-    -- Obtener alto (H) o ancho (W) de una imagen
+    -- Obtener ancho (X) o alto (Y) de una imagen
     (~>) :: a -> Dim -> Int
     -- Obtener un pixel determinado (error si fuera de rango)
     (!) :: a -> Point2D -> Pixel

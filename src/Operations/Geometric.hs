@@ -9,28 +9,28 @@ import Image
 refH :: Image a => Result a -> Result a
 refH img =
     do m <- img
-       create (\(row,col) -> m!(m~>H - row + 1, col)) (dim m)
+       create (\(x,y) -> m!(x, m~>Y - y + 1)) (dim m)
 
 refV :: Image a => Result a -> Result a
 refV img =
     do m <- img
-       create (\(row,col) -> m!(row, m~>W - col + 1)) (dim m)
+       create (\(x,y) -> m!(m~>X - x + 1, y)) (dim m)
 
 -- Rotaciones (sentido horario)
 rot90 :: Image a => Result a -> Result a
 rot90 img =
     do m <- img
-       create (\(row,col) -> m!(col, m~>W - row + 1)) (m~>H, m~>W)
+       create (\(x,y) -> m!(m~>X - y + 1, x)) (m~>Y, m~>X)
 
 rot180 :: Image a => Result a -> Result a
 rot180 img =
     do m <- img
-       create (\(row,col) -> m!(m~>H - row + 1, m~>W - col + 1)) (m~>W, m~>H)
+       create (\(x,y) -> m!(m~>X - x + 1, m~>Y - y + 1)) (m~>X, m~>Y)
 
 rot270 :: Image a => Result a -> Result a
 rot270 img =
     do m <- img
-       create (\(row,col) -> m!(m~>H - col + 1, row)) (m~>H, m~>W)
+       create (\(x,y) -> m!(y, m~>Y - x + 1)) (m~>Y, m~>X)
 
 -- Une dos imágenes, una al lado de la otra
 infixl 4 <|>
@@ -38,22 +38,22 @@ infixl 4 <|>
 img1 <|> img2 =
     do left  <- img1
        right <- img2
-       if left~>H /= right~>H
+       if left~>Y /= right~>Y
           then throwError "(<|>) : sizes do not match"
-          else let f (row,col) = if col <= left~>W
-                                 then left !(row, col)
-                                 else right!(row, col - left~>W)
-               in create f (left~>W + right~>W, left~>H)
+          else let f (x,y) = if x <= left~>X
+                                 then left !(x, y)
+                                 else right!(x - left~>X, y)
+               in create f (left~>X + right~>X, left~>Y)
 
 -- Une dos imágenes, una encima de la otra
 infixl 3 </>
 (</>) :: Image a => Result a -> Result a -> Result a
 img1 </> img2 =
-    do upper <- img2    -- Ésto es raro, parece que las imágenes quedan
-       lower <- img1    -- intercambiadas si lo hago de la manera intuitiva
-       if upper~>W /= lower~>W
+    do upper <- img1
+       lower <- img2
+       if upper~>X /= lower~>X
            then throwError "(</>) : sizes do not match"
-           else let f (row,col) = if row <= upper~>H
-                                  then upper!(row, col)
-                                  else lower!(row - upper~>H, col)
-                 in create f (upper~>W, upper~>H + lower~>H)
+           else let f (x,y) = if y <= upper~>Y
+                                  then upper!(x, y)
+                                  else lower!(x, y - upper~>Y)
+                 in create f (upper~>X, upper~>Y + lower~>Y)

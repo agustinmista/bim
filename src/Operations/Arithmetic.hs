@@ -23,7 +23,7 @@ instance Image a => Num (Result a) where
     signum img =
         do m <- img
            create (\_-> (1,1,1)) (dim m)
-    negate = pixelTrans (\size pix -> negate pix)
+    negate = pixelTrans (\dim pix -> negate pix)
     fromInteger = undefined
 
 

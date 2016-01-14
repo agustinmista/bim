@@ -3,6 +3,7 @@
 module BIM (
     module BIM,
     module Image,
+    module ImageIO,
     module Constants,
     module Operations.Arithmetic,
     module Operations.Point,
@@ -10,15 +11,14 @@ module BIM (
     module Operations.Histogram
 ) where
 
-import Codec.BMP
-import Data.Word
-import Control.Exception (catch, IOException)
 import Prelude       hiding ((!!), catch)
 import Data.Matrix   hiding ((!), (<|>))
-import qualified Data.Foldable   as F
-import qualified Data.ByteString as BS
+import Data.Tuple    (swap)
+import qualified Data.Foldable as F
+
 
 import Image
+import ImageIO
 import Pixel
 import Constants
 import Operations.Arithmetic
@@ -32,96 +32,54 @@ type Bitmap = Matrix Pixel
 instance Image Bitmap where
     create = createBitmap
     dim m = (ncols m, nrows m)
-    m~>W = ncols m
-    m~>H = nrows m
-    m!(r,c) = getElem r c m
+    m~>X = ncols m
+    m~>Y = nrows m
+    m!(x,y) = getElem y x m
     pixelTrans = pixelTransBitmap
     localTrans = undefined
     fold = foldBitmap
 
 
--- Cargar una imagen desde un archivo-------------------------------------------
--- load :: String -> IO (Result Bitmap)
--- load path =
---     do readed <- catch (readBMP path)
---                        (\e -> do let err = show (e :: IOException)
---                                  putStrLn $ "IOException: " ++ err
---                                  return $ Left IOError)
---        case readed of
---            Right bmp -> do
---                let (w,h) = bmpDimensions bmp
---                putStrLn $ "Opening " ++ path ++ " (" ++ show w ++ "x" ++ show h ++ ")"
---                return $ return $ toMatrix w h bmp
---            Left err -> return $ throwError (show err)
-load :: String -> IO (Result Bitmap)
-load path = do
-    putStr $ "Opening file  \"" ++ path ++ "\":\t"
-    catch (do readed <- readBMP path
-              case readed of
-                 Right bmp -> do
-                         putStrLn "Ok"
-                         let (w,h) = bmpDimensions bmp
-                         return $ return $ toMatrix w h bmp
-                 Left err -> do
-                         putStrLn "Fail"
-                         return $ throwError $ path ++ ": " ++ (show err))
-          (\e -> do putStrLn "Fail"
-                    return $ throwError $ path ++ ": " ++ show (e :: IOException))
-
-toMatrix :: Int -> Int -> BMP -> Bitmap
-toMatrix w h = fromList h w . toTuples . BS.foldr (:) [] . unpackBMPToRGBA32
-
-toTuples :: [Word8] -> [Pixel]
-toTuples [] = []
-toTuples (r:g:b:_:xs) = (fromIntegral r, fromIntegral g, fromIntegral b) : toTuples xs
---------------------------------------------------------------------------------
-
-
--- Guardar una imagen a un archivo ---------------------------------------------
-save :: String -> Result Bitmap -> IO ()
-save path (Left  err) =
-    putStrLn $ "Error saving image to \"" ++ path ++ "\":\t" ++ err
-save path (Right img) =
-    do let (r,c) = (nrows img, ncols img)
-       putStrLn $ "Saving  " ++ path ++ " (" ++ show c ++ "x" ++ show r ++ ")"
-       writeBMP path (toBMP r c img)
-
-toBMP :: Int -> Int -> Bitmap -> BMP
-toBMP h w = packRGBA32ToBMP w h . BS.pack . fromTuples . toList
-
-fromTuples :: [Pixel] -> [Word8]
-fromTuples [] = []
-fromTuples ((r,g,b):xs) = [fromIntegral r, fromIntegral g, fromIntegral b, 255] ++ fromTuples xs
---------------------------------------------------------------------------------
-
-
--- Crear una imagen mediante una función ---------------------------------------
+-- Crear una imagen mediante una función
 createBitmap :: (Point2D -> Pixel) -> Point2D -> Result Bitmap
-createBitmap f (w,h) = return $ matrix h w f
---------------------------------------------------------------------------------
+createBitmap f (x,y) = return $ matrix y x (f . swap)
 
--- Transformaciónes ------------------------------------------------------------
+-- Transformaciónes
 -- De pixel en pixel
 pixelTransBitmap :: (Point2D -> Pixel ->  Pixel) -> Result Bitmap -> Result Bitmap
-pixelTransBitmap f img =
-    do m <- img
-       createBitmap (\pos -> validate (f (dim m) (m!pos))) (dim m)
+pixelTransBitmap f img = do
+    m <- img
+    createBitmap (\pos -> validate (f (dim m) (m!pos))) (dim m)
 
 
 -- De vecinos en pixel, con determinado radio
--- localTransBitmap :: (Point2D -> Bitmap -> Pixel) -> Int -> Result Bitmap -> Result Bitmap
--- localTransBitmap f r img =
---     do m <- img
---        createBitmap (\pos -> validate (f (dim m) (neighbours pos))) (dim m)
---             where neighbours pos = matrix (2*r+1) (2*r+1) (\npos ->
---                                         if isInside pos npos (dim m) then
---                                             )
-
---------------------------------------------------------------------------------
-
--- Fold ------------------------------------------------------------------------
-foldBitmap :: (Pixel -> b -> b) -> b -> Result Bitmap -> Result b
-foldBitmap f e img =
+localTransBitmap :: (Point2D -> Bitmap -> Pixel) -> Int -> Result Bitmap -> Result Bitmap
+localTransBitmap f r img =
     do m <- img
-       return $ F.foldr f e m
---------------------------------------------------------------------------------
+       padded <- extend r img
+       createBitmap (\pos -> validate (f (dim m) (neighbours pos padded))) (dim m)
+            where neighbours (x,y) = submatrix (y-r) (y+r) (x-r) (x+r)
+
+-- Extiende los bordes de una imagen (padding), con determinado radio
+extend :: Int -> Result Bitmap -> Result Bitmap
+extend r img = do
+    m <- img
+    createBitmap (fun m) (m~>X + 2*r, m~>Y + 2*r)
+    where fun m (x,y) | x <= r       && y <= r       = m!(1, 1)       -- Esq. sup. izquierda
+                      | x <= r       && y > m~>Y + r = m!(1, m~>Y)    -- Esq. inf. izquierda
+                      | x > m~>X + r && y <= r       = m!(m~>X, 1)    -- Esq. sup. derecha
+                      | x > m~>X + r && y > m~>Y + r = m!(m~>X, m~>Y) -- Esq. inf. derecha
+                      | x <= r                       = m!(1, y-r)     -- Borde izquierdo
+                      | x > m~>X + r                 = m!(m~>X, y-r)  -- Borde derecho
+                      | y <= r                       = m!(x-r, 1)     -- Borde superior
+                      | y > m~>Y + r                 = m!(x-r, m~>Y)  -- Borde inferior
+                      | otherwise                    = m!(x-r, y-r)   -- La imagen en si
+
+
+
+
+-- Fold
+foldBitmap :: (Pixel -> b -> b) -> b -> Result Bitmap -> Result b
+foldBitmap f e img = do
+    m <- img
+    return $ F.foldr f e m
