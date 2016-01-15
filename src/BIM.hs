@@ -8,10 +8,11 @@ module BIM (
     module Operations.Arithmetic,
     module Operations.Point,
     module Operations.Geometric,
+    module Operations.Filters,
     module Operations.Histogram
 ) where
 
-import Prelude       hiding ((!!), catch)
+import Prelude
 import Data.Matrix   hiding ((!), (<|>))
 import Data.Tuple    (swap)
 import qualified Data.Foldable as F
@@ -24,6 +25,7 @@ import Constants
 import Operations.Arithmetic
 import Operations.Point
 import Operations.Geometric
+import Operations.Filters
 import Operations.Histogram
 
 -- Represento mapas de bits como matrices de pixeles
@@ -31,20 +33,20 @@ type Bitmap = Matrix Pixel
 
 instance Image Bitmap where
     create = createBitmap
+    pixelTrans = pixelTransBitmap
+    localTrans = localTransBitmap
     dim m = (ncols m, nrows m)
     m~>X = ncols m
     m~>Y = nrows m
     m!(x,y) = getElem y x m
-    pixelTrans = pixelTransBitmap
-    localTrans = undefined
-    fold = foldBitmap
+    fold = F.foldr
 
+-- Combinadores ----------------------------------------------------------------
 
 -- Crear una imagen mediante una función
 createBitmap :: (Point2D -> Pixel) -> Point2D -> Result Bitmap
-createBitmap f (x,y) = return $ matrix y x (f . swap)
+createBitmap f (x,y) = return $ matrix y x (validate . f . swap)
 
--- Transformaciónes
 -- De pixel en pixel
 pixelTransBitmap :: (Point2D -> Pixel ->  Pixel) -> Result Bitmap -> Result Bitmap
 pixelTransBitmap f img = do
@@ -53,12 +55,12 @@ pixelTransBitmap f img = do
 
 
 -- De vecinos en pixel, con determinado radio
-localTransBitmap :: (Point2D -> Bitmap -> Pixel) -> Int -> Result Bitmap -> Result Bitmap
-localTransBitmap f r img =
+localTransBitmap :: Int -> (Bitmap -> Pixel) -> Result Bitmap -> Result Bitmap
+localTransBitmap r f img =
     do m <- img
        padded <- extend r img
-       createBitmap (\pos -> validate (f (dim m) (neighbours pos padded))) (dim m)
-            where neighbours (x,y) = submatrix (y-r) (y+r) (x-r) (x+r)
+       createBitmap (\pos -> validate (f (neighbours pos padded))) (dim m)
+            where neighbours (x,y) m = submatrix y (y+2*r) x (x+2*r) m
 
 -- Extiende los bordes de una imagen (padding), con determinado radio
 extend :: Int -> Result Bitmap -> Result Bitmap
@@ -74,12 +76,3 @@ extend r img = do
                       | y <= r                       = m!(x-r, 1)     -- Borde superior
                       | y > m~>Y + r                 = m!(x-r, m~>Y)  -- Borde inferior
                       | otherwise                    = m!(x-r, y-r)   -- La imagen en si
-
-
-
-
--- Fold
-foldBitmap :: (Pixel -> b -> b) -> b -> Result Bitmap -> Result b
-foldBitmap f e img = do
-    m <- img
-    return $ F.foldr f e m

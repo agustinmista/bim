@@ -19,23 +19,22 @@ type Result a = Either String a
 throwError :: String -> Result a
 throwError = Left
 
--- Métodos de conversión RGB -> B&W
-data Method = LIG   -- Lightness
-            | LUM   -- Luminosity
-            | AVG   -- Average
-
 -- Representamos imágenes y operaciones primitivas sobre ellas
 class Image a where
+    -- Combinadores sobre imágenes
+    -- Crear imagen a partir de una función
     create :: (Point2D -> Pixel) -> Point2D -> Result a
+    -- Transformación de pixel en pixel
+    pixelTrans :: (Point2D -> Pixel ->  Pixel) -> Result a -> Result a
+    -- Transformación de vecinos en pixel, con determinado radio
+    localTrans :: Int -> (a -> Pixel) -> Result a -> Result a
+
+    -- Observaciones sobre imágenes
     -- Obtener dimensiones de una imagen (ancho x alto)
     dim :: a -> Point2D
     -- Obtener ancho (X) o alto (Y) de una imagen
     (~>) :: a -> Dim -> Int
     -- Obtener un pixel determinado (error si fuera de rango)
     (!) :: a -> Point2D -> Pixel
-    -- Transformación de pixel en pixel
-    pixelTrans :: (Point2D -> Pixel ->  Pixel) -> Result a -> Result a
-    -- Transformación de vecinos en pixel, con determinado radio
-    localTrans :: (Point2D -> a -> Pixel) -> Int -> Result a -> Result a
     -- Capacidad de consumirse mediante fold
-    fold :: (Pixel -> b -> b) -> b -> Result a -> Result b
+    fold :: (Pixel -> b -> b) -> b -> a -> b
