@@ -1,48 +1,41 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module BIM (
-    module BIM,
     module Image,
-    module ImageIO,
-    module Constants,
+    module Bitmap,
+
     module Operations.Arithmetic,
     module Operations.Point,
     module Operations.Geometric,
     module Operations.Filters,
-    module Operations.Histogram
+    module Operations.Histogram,
+    module Operations.Palette
 ) where
 
-import Prelude
 import Data.Matrix   hiding ((!), (<|>))
 import Data.Tuple    (swap)
 import qualified Data.Foldable as F
 
-
 import Image
-import ImageIO
-import Pixel
-import Constants
+import Bitmap
+
 import Operations.Arithmetic
 import Operations.Point
 import Operations.Geometric
 import Operations.Filters
 import Operations.Histogram
-
--- Represento mapas de bits como matrices de pixeles
-type Bitmap = Matrix Pixel
+import Operations.Palette
 
 instance Image Bitmap where
     create = createBitmap
     pixelTrans = pixelTransBitmap
     localTrans = localTransBitmap
-    dim m = (ncols m, nrows m)
     m~>X = ncols m
     m~>Y = nrows m
     m!(x,y) = getElem y x m
     fold = F.foldr
 
 -- Combinadores ----------------------------------------------------------------
-
 -- Crear una imagen mediante una función
 createBitmap :: (Point2D -> Pixel) -> Point2D -> Result Bitmap
 createBitmap f (x,y) = return $ matrix y x (validate . f . swap)

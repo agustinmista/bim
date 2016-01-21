@@ -3,21 +3,25 @@
 module Image (
     module Image,
     module Pixel,
-    module Constants
+    module Colors
 ) where
 
 import Pixel
-import Constants
-
-type Point2D = (Int, Int)
-data Dim     =   X | Y
+import Colors
 
 -- Representamos un resultado como una computación que
--- puede fallar, devolviendo un String, o bien tener éxito.
+-- puede fallar, devolviendo un String, o bien tener éxito
 type Result a = Either String a
 
-throwError :: String -> Result a
-throwError = Left
+-- Si ocurre un error, dejamos de procesar
+throw :: String -> Result a
+throw = Left
+
+type Point2D = (Int, Int)
+data Dim = X | Y
+
+dim :: Image a => a -> (Int, Int)
+dim img = (img~>X, img~>Y)
 
 -- Representamos imágenes y operaciones primitivas sobre ellas
 class Image a where
@@ -30,8 +34,6 @@ class Image a where
     localTrans :: Int -> (a -> Pixel) -> Result a -> Result a
 
     -- Observaciones sobre imágenes
-    -- Obtener dimensiones de una imagen (ancho x alto)
-    dim :: a -> Point2D
     -- Obtener ancho (X) o alto (Y) de una imagen
     (~>) :: a -> Dim -> Int
     -- Obtener un pixel determinado (error si fuera de rango)

@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module ImageIO (
-    load, save
+module Bitmap (
+    load, save, Bitmap
 ) where
 
 import Prelude     hiding (catch)
@@ -19,7 +19,7 @@ type Bitmap = Matrix Pixel
 -- Cargar una imagen desde un archivo
 load :: String -> IO (Result Bitmap)
 load path = do
-    putStr $ "Opening file  \"" ++ path ++ "\":\t"
+    putStr $ "Opening file \"" ++ path ++ "\": "
     catch (do readed <- readBMP path
               case readed of
                  Right bmp -> do
@@ -28,9 +28,9 @@ load path = do
                          return $ return $ toMatrix x bmp
                  Left err -> do
                          putStrLn "Fail"
-                         return $ throwError $ path ++ ": " ++ (show err))
+                         return $ throw $ path ++ ": " ++ (show err))
           (\e -> do putStrLn "Fail"
-                    return $ throwError $ path ++ ": " ++ show (e :: IOException))
+                    return $ throw $ path ++ ": " ++ show (e :: IOException))
 
 -- Guardar una imagen a un archivo
 save :: String -> Result Bitmap -> IO ()
