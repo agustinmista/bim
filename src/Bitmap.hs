@@ -33,12 +33,12 @@ load path = do
 
 -- Guardar una imagen a un archivo
 save :: String -> Result Bitmap -> IO ()
-save path (Left  err) =
-    putStrLn $ "Error saving image to \"" ++ path ++ "\": " ++ err
-save path (Right img) = do
-    let (x,y) = (ncols img, nrows img)
-    putStrLn $ "Saving  " ++ path ++ " (" ++ show x ++ "x" ++ show y ++ ")"
-    writeBMP path (toBMP y x img)
+save path =
+    either (\err -> putStrLn $ "Error saving image to \"" ++ path ++ "\": " ++ err)
+           (\img -> do
+                let (x,y) = (ncols img, nrows img)
+                putStrLn $ "Saving  " ++ path ++ " (" ++ show x ++ "x" ++ show y ++ ")"
+                writeBMP path (toBMP y x img))
 
 
 -- Divide la lista de pixeles en filas

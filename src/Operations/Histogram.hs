@@ -37,16 +37,16 @@ graphB = Data2D [Title "B", Style Lines, Color Blue ] [Range 0 255]
 
 -- Devuelve el histograma de una imágen, hacia una ventana o archivo
 histogram :: Image a => TerminalType-> Result a -> IO ()
-histogram tt (Left err) = putStrLn $ "Error processing histogram: " ++ err
-histogram tt (Right img) = do
-    let (rv,gv,bv) = fold updateVecRGB emptyVecRGB img
-        histData = [graphR (toList rv), graphG (toList gv), graphB (toList bv)]
-    plotRes <- plot tt histData
-    removeTempFiles
-    if plotRes
-        then putStrLn "Histogram plotted/saved succesfully"
-        else putStrLn "Error processing histogram: gnuplot returned fail exit code"
-
+histogram tt =
+    either (\err -> putStrLn $ "Error processing histogram: " ++ err)
+           (\img -> do
+               let (rv,gv,bv) = fold updateVecRGB emptyVecRGB img
+                   histData   = [graphR (toList rv), graphG (toList gv), graphB (toList bv)]
+               plotRes <- plot tt histData
+               removeTempFiles
+               if plotRes
+                   then putStrLn "Histogram plotted/saved succesfully"
+                   else putStrLn "Error processing histogram: gnuplot returned fail exit code")
 
 -- Guarda el histograma en un archivo
 saveHist :: Image a => TerminalType -> Result a -> IO ()
