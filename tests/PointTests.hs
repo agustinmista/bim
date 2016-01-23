@@ -1,5 +1,13 @@
 import BIM
 
+testAll = do
+    testModify
+    testModifyCh
+    testGetChannel
+    testNegative
+    testMonochrome
+    testThreshold
+
 -- modify
 testModify = do
     toucan <- load "img/toucan.bmp"

@@ -1,5 +1,12 @@
 import BIM
 
+testAll = do
+    testCrop
+    testOverlap
+    testScale
+    testRotations
+    testReflections
+
 -- crop
 testCrop = do
     rubik <- load "img/rubik.bmp"
@@ -16,7 +23,7 @@ testOverlap = do
 -- scale
 testScale = do
     toucan <- load "img/toucan.bmp"
-    let out = overlap (289,193) toucan (scale 2.5 toucan)
+    let out = overlap (465,0) toucan (scale 2.5 toucan)
     save "tests/outputs/scale.bmp" out
 
 -- rotations
@@ -27,7 +34,7 @@ testRotations = do
     save "tests/outputs/rotations.bmp" out
 
 -- reflections
-testReflecions = do
+testReflections = do
     lena <- load "img/lena.bmp"
     let out = lena <|> reflect X lena <|> reflect Y lena
     save "tests/outputs/reflections.bmp" out

@@ -1,5 +1,13 @@
 import BIM
 
+testAll = do
+    testDilationErotion
+    testMeanMeadian
+    testEdgeDetection
+    testBlurs
+    testSharpen
+    testEmboss
+
 -- dilation/erosion
 testDilationErotion = do
     toucan <- load "img/toucan.bmp"
