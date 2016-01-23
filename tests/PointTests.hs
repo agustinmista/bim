@@ -17,9 +17,9 @@ testModify = do
 -- modifyCh
 testModifyCh = do
     toucan <- load "img/toucan.bmp"
-    let modifiedR = modifyCh R (*2)     toucan
-        modifiedG = modifyCh G ((-)100) toucan
-        modifiedB = modifyCh B (+50)    toucan
+    let modifiedR = modifyCh R (*2)         toucan
+        modifiedG = modifyCh G (\x-> x-100) toucan
+        modifiedB = modifyCh B (+50)        toucan
         out = toucan    <|> modifiedR
                         </>
               modifiedG <|> modifiedB
