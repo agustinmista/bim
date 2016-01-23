@@ -1,10 +1,11 @@
-{-# LANGUAGE FlexibleInstances #-}
-
 module Image (
     module Image,
     module Pixel,
-    module Colors
+    module Colors,
+    throwError
 ) where
+
+import Control.Monad.Except (throwError)
 
 import Pixel
 import Colors
@@ -13,13 +14,13 @@ import Colors
 -- puede fallar, devolviendo un String, o bien tener éxito
 type Result a = Either String a
 
--- Si ocurre un error, dejamos de procesar
-throw :: String -> Result a
-throw = Left
-
-type Point2D = (Int, Int)
+-- Ancho y alto de una imagen
 data Dim = X | Y
 
+-- Posiciones en el espacio
+type Point2D = (Int, Int)
+
+-- Atajo para obtener dimensiones de una imagen
 dim :: Image a => a -> (Int, Int)
 dim img = (img~>X, img~>Y)
 

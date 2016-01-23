@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
-
 module Bitmap (
     load, save, Bitmap
 ) where
@@ -28,14 +26,15 @@ load path = do
                          return $ return $ toMatrix x bmp
                  Left err -> do
                          putStrLn "Fail"
-                         return $ throw $ path ++ ": " ++ (show err))
+                         return $ throwError $ path ++ ": " ++ (show err))
           (\e -> do putStrLn "Fail"
-                    return $ throw $ path ++ ": " ++ show (e :: IOException))
+                    return $ throwError $ path ++ ": " ++ show (e :: IOException))
+
 
 -- Guardar una imagen a un archivo
 save :: String -> Result Bitmap -> IO ()
 save path (Left  err) =
-    putStrLn $ "Error saving image to \"" ++ path ++ "\":\t" ++ err
+    putStrLn $ "Error saving image to \"" ++ path ++ "\": " ++ err
 save path (Right img) = do
     let (x,y) = (ncols img, nrows img)
     putStrLn $ "Saving  " ++ path ++ " (" ++ show x ++ "x" ++ show y ++ ")"

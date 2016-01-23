@@ -1,8 +1,9 @@
-{-# LANGUAGE FlexibleInstances #-}
 module Operations.Filters (
-    mean, median, convolution, sobel,
-    sharpen, emboss, laplace, smooth,
-    gaussian, erosion, dilation, motionBlur, Orientation(..)
+    erosion, dilation,
+    mean, median,
+    convolution, sobel, laplace,
+    smooth, gaussian, motionBlur, 
+    sharpen, emboss, Orientation(..)
 ) where
 
 import Data.List (sortBy)
@@ -10,31 +11,29 @@ import Data.List (sortBy)
 import Image
 import Operations.Arithmetic
 
--- Erosion, de radio r
+-- Erosion y dilation, de radio r
 erosion :: Image a => Int -> Result a -> Result a
 erosion r = localTrans r (fold min white)
 
--- Dilation, de radio r
 dilation :: Image a => Int -> Result a -> Result a
 dilation r = localTrans r (fold max black)
 
 
--- Filtro de promedio, de radio r
+-- Filtros de promedio y mediana, de radio r
 mean :: Image a => Int -> Result a -> Result a
 mean r = localTrans r (fold sumf black)
             where sumf (r,g,b) (rs, gs, bs) = (r*>v + rs, g*>v + gs, b*>v + bs)
                   v = 1 / (fromIntegral ((2*r+1)^2))
 
--- Filtro de mediana, de radio r
 median :: Image a => Int -> Result a -> Result a
 median r = localTrans r (getMid . sortBy lumOrd . fold (:) [])
             where getMid xs = xs !! ((2*r+1)^2 `div` 2)
 
 
--- Convolution kernels
+-- Convolution kernels (a.k.a generic filters)
 convolution :: Image a => Int -> [Float] -> Result a -> Result a
 convolution r k img
-        | length k /= (2*r+1)^2 = throw "convolution: kernel size don't match radius"
+        | length k /= (2*r+1)^2 = throwError "convolution: kernel size don't match radius"
         | otherwise             = localTrans 1 (zipKernel k . fold (:) []) img
                                     where zipKernel k = sum . zipWith zipper k
                                           zipper i pix = pixelMap (*>i) pix
@@ -76,7 +75,10 @@ gaussianKernel = [ 1/16,  1/8,  1/16,
                    1/16,  1/8,  1/16 ]
 
 -- Desenfoque de movimiento
-data Orientation = H | V | A | D
+data Orientation = H  -- Horizontal
+                 | V  -- Vertical
+                 | A  -- Ascending ( / )
+                 | D  -- Descendig ( \ )
 
 motionBlur :: Image a => Orientation -> Result a -> Result a
 motionBlur H = convolution 1 hmbKernel

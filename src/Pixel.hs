@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
+
 module Pixel (
-    module Pixel,
+    module Pixel
 ) where
 
 -- Representamos pixeles mediante tuplas de valores RGB
@@ -14,9 +15,9 @@ instance Num Pixel where
     abs = id
     signum n = (1,1,1)
     negate (r,g,b) = (-r,-g,-b)
-    fromInteger n = ((fromInteger n) `mod` 256
+    fromInteger n = ((fromInteger n) `div` 256 `div` 256 `mod` 256
                     ,(fromInteger n) `div` 256 `mod` 256
-                    ,(fromInteger n) `div` 256 `div` 256 `mod` 256)
+                    ,(fromInteger n) `mod` 256)
 
 -- Métodos de conversión RGB -> B&W
 type ConvMethod = (Pixel -> Int)
@@ -39,6 +40,6 @@ validate (r,g,b) = (aux r, aux g, aux b)
 pixelMap :: (Int -> Int) -> Pixel -> Pixel
 pixelMap f (r,g,b) = (f r, f g, f b)
 
--- Multiplica un valor por una constante real
+-- Multiplica un valor entero por una constante real
 (*>) :: Int -> Float -> Int
 n*>f = floor (fromIntegral n * f)

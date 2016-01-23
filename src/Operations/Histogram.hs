@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
 module Operations.Histogram (
     saveHist, plotHist, TerminalType(..)
 ) where
@@ -13,7 +12,6 @@ import System.Directory
 
 import Image
 
-
 -- Almacenamos los valores de un histograma como una tupla de coordenadas
 type Hist = Vector (Float,Float)
 type HistRGB = (Hist, Hist, Hist)
@@ -23,7 +21,7 @@ emptyVecRGB :: HistRGB
 emptyVecRGB = (emptyVec, emptyVec, emptyVec)
                 where emptyVec = generate 256 (\i -> (fromIntegral i, 0))
 
--- Dado un pixel, incrementa en una unidad los índices correspondientes de cada
+-- Incrementa en una unidad los índices correspondientes de cada
 -- vector de coordenadas
 updateVecRGB :: Pixel -> HistRGB -> HistRGB
 updateVecRGB (r,g,b) (rv,gv,bv) = (updateVec r rv, updateVec g gv, updateVec b bv)
@@ -41,20 +39,21 @@ graphB = Data2D [Title "B", Style Lines, Color Blue ] [Range 0 255]
 histogram :: Image a => TerminalType-> Result a -> IO ()
 histogram tt (Left err) = putStrLn $ "Error processing histogram: " ++ err
 histogram tt (Right img) = do
-        let (rv,gv,bv) = fold updateVecRGB emptyVecRGB img
-            histData = [graphR (toList rv), graphG (toList gv), graphB (toList bv)]
-        plotRes <- plot tt histData
-        removeTempFiles
-        if plotRes
-            then putStrLn "Histogram plotted succesfully"
-            else putStrLn "Error processing histogram: gnuplot returned fail exit code"
+    let (rv,gv,bv) = fold updateVecRGB emptyVecRGB img
+        histData = [graphR (toList rv), graphG (toList gv), graphB (toList bv)]
+    plotRes <- plot tt histData
+    removeTempFiles
+    if plotRes
+        then putStrLn "Histogram plotted/saved succesfully"
+        else putStrLn "Error processing histogram: gnuplot returned fail exit code"
 
 
 -- Guarda el histograma en un archivo
 saveHist :: Image a => TerminalType -> Result a -> IO ()
-saveHist tt img = if isFileType tt
-                then histogram tt img
-                else putStrLn "Error saving histogram: Invalid output file type"
+saveHist tt img =
+    if isFileType tt
+        then histogram tt img
+        else putStrLn "Error saving histogram: Invalid output file type"
 
 -- Muestra el histograma en una ventana de gnuplot
 plotHist :: Image a => Result a -> IO ()

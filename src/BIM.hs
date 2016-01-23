@@ -3,7 +3,6 @@
 module BIM (
     module Image,
     module Bitmap,
-
     module Operations.Arithmetic,
     module Operations.Point,
     module Operations.Geometric,
@@ -12,13 +11,12 @@ module BIM (
     module Operations.Palette
 ) where
 
-import Data.Matrix   hiding ((!), (<|>))
+import Data.Matrix   hiding ((!))
 import Data.Tuple    (swap)
 import qualified Data.Foldable as F
 
 import Image
 import Bitmap
-
 import Operations.Arithmetic
 import Operations.Point
 import Operations.Geometric
@@ -26,14 +24,22 @@ import Operations.Filters
 import Operations.Histogram
 import Operations.Palette
 
+-- Damos una instancia de Image para
 instance Image Bitmap where
-    create = createBitmap
+    create     = createBitmap
     pixelTrans = pixelTransBitmap
     localTrans = localTransBitmap
-    m~>X = ncols m
-    m~>Y = nrows m
-    m!(x,y) = getElem y x m
-    fold = F.foldr
+    m~>X       = ncols m
+    m~>Y       = nrows m
+    (!)        = at
+    fold       = F.foldr
+
+-- Obtener un elemento una imagen o lanzar una excepción
+at :: Bitmap -> Point2D -> Pixel
+m `at` (x,y) = case safeGet y x m of
+        Just pix -> pix
+        Nothing  -> error $ "(!): index ("++ show x ++
+                                "," ++ show y ++ ") is out of bounds"
 
 -- Combinadores ----------------------------------------------------------------
 -- Crear una imagen mediante una función

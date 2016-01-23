@@ -1,6 +1,5 @@
-{-# LANGUAGE FlexibleInstances #-}
 module Operations.Palette (
-    dominantColors, palette
+    palette, dominants
 ) where
 
 import Data.Map (fromListWith, toList)
@@ -8,18 +7,19 @@ import Data.List (sortBy)
 
 import Image
 
--- Crea una imagen de tamaño WxH con los n colores más dominantes de una imágen
+-- A partir de una imagen, crea otra de determinado tamaño con los n colores
+-- más dominantes de la primera
 palette :: Image a => Point2D -> Int -> Result a -> Result a
 palette size@(w,h) n img = do
         m <- img
-        let dominants = dominantColors n m
-            tileSize = (w `div` (min n (length dominants))) + 1
-        create (\(x,_) -> dominants !! (x `div` tileSize)) size
+        let colors = dominants n m
+            tileSize = (w `div` (min n (length colors))) + 1
+        create (\(x,_) -> colors !! (x `div` tileSize)) size
 
 
 -- Obtiene los n colores más dominantes de una imágen
-dominantColors :: Image a => Int -> a -> [Pixel]
-dominantColors n = map fst . take n . sortDecBySnd . frequency . to256ColorsList
+dominants :: Image a => Int -> a -> [Pixel]
+dominants n = map fst . take n . sortDecBySnd . frequency . to256ColorsList
 
 sortDecBySnd :: Ord b => [(a,b)] -> [(a,b)]
 sortDecBySnd = sortBy (\x y -> snd y `compare` snd x)
