@@ -24,7 +24,7 @@ type ConvMethod = (Pixel -> Int)
 
 lig, lum, avg :: ConvMethod
 lig (r,g,b) = (maximum [r,g,b] + minimum [r,g,b]) `div` 2
-lum (r,g,b) = r*>0.21 + g*>0.72 + b*>0.07
+lum (r,g,b) = r%>0.21 + g%>0.72 + b%>0.07
 avg (r,g,b) = (r+g+b) `div` 3
 
 -- Hacemos pixeles ordenables convirtiéndolos a enteros mediante luminancia
@@ -41,5 +41,5 @@ pixelMap :: (Int -> Int) -> Pixel -> Pixel
 pixelMap f (r,g,b) = (f r, f g, f b)
 
 -- Multiplica un valor entero por una constante real
-(*>) :: Int -> Float -> Int
-n*>f = floor (fromIntegral n * f)
+(%>) :: Int -> Float -> Int
+n%>f = floor (fromIntegral n * f)

@@ -41,7 +41,7 @@ scale2D (xf,yf) img
     | xf < 0 || yf < 0 = throwError "scale: new size must be positive"
     | otherwise        = do
             m <- img
-            create (\(x,y) -> m!(pos x xf, pos y yf)) (m~>X *> xf, m~>Y *> yf)
+            create (\(x,y) -> m!(pos x xf, pos y yf)) (m~>X %> xf, m~>Y %> yf)
                         where pos v vf = ceiling $ fromIntegral v / vf
 
 scaleTo :: Image a => Point2D -> Result a -> Result a

@@ -2,7 +2,7 @@ module Operations.Filters (
     erosion, dilation,
     mean, median,
     convolution, sobel, laplace,
-    smooth, gaussian, motionBlur, 
+    smooth, gaussian, motionBlur,
     sharpen, emboss, Orientation(..)
 ) where
 
@@ -22,7 +22,7 @@ dilation r = localTrans r (fold max black)
 -- Filtros de promedio y mediana, de radio r
 mean :: Image a => Int -> Result a -> Result a
 mean r = localTrans r (fold sumf black)
-            where sumf (r,g,b) (rs, gs, bs) = (r*>v + rs, g*>v + gs, b*>v + bs)
+            where sumf (r,g,b) (rs, gs, bs) = (r%>v + rs, g%>v + gs, b%>v + bs)
                   v = 1 / (fromIntegral ((2*r+1)^2))
 
 median :: Image a => Int -> Result a -> Result a
@@ -36,11 +36,11 @@ convolution r k img
         | length k /= (2*r+1)^2 = throwError "convolution: kernel size don't match radius"
         | otherwise             = localTrans 1 (zipKernel k . fold (:) []) img
                                     where zipKernel k = sum . zipWith zipper k
-                                          zipper i pix = pixelMap (*>i) pix
+                                          zipper i pix = pixelMap (%>i) pix
 
 -- Deteccion de bordes de sobel
 sobel :: Image a => Result a -> Result a
-sobel img = (convolution 1 sobelXKernel img) <+> (convolution 1 sobelYKernel img)
+sobel img = (convolution 1 sobelXKernel img) + (convolution 1 sobelYKernel img)
 
 sobelXKernel = [-1,  0,  1,
                 -2,  0,  2,

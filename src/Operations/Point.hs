@@ -34,9 +34,9 @@ mono m = pixelTrans (\size pix -> (m pix, m pix, m pix))
 threshold :: Image a => ConvMethod -> Float -> Result a -> Result a
 threshold m th img
         | th > 1.0 || th < 0.0 = throwError "threshold: threshold must be between 0.0 ~ 1.0"
-        | otherwise            = pixelTrans (\size pix -> if m pix >= 255*>th then pix else black) img
+        | otherwise            = pixelTrans (\size pix -> if m pix >= 255%>th then pix else black) img
 
 binary :: Image a => ConvMethod -> Float -> Result a -> Result a
 binary m th img
         | th > 1.0 || th < 0.0 = throwError "binary: threshold must be between 0.0 ~ 1.0"
-        | otherwise            = pixelTrans (\size pix -> if m pix >= 255*>th then white else black) img
+        | otherwise            = pixelTrans (\size pix -> if m pix >= 255%>th then white else black) img
