@@ -28,5 +28,7 @@ to256ColorsList :: Image a => a -> [Pixel]
 to256ColorsList = fold (\p ps -> to256 p : ps) []
                 where to256 = pixelMap (\v -> (div v  32) * 32)
 
+-- Cuenta la frecuencia de aparición de un elemento en una lista
+-- http://stackoverflow.com/questions/10398698/haskell-counting-how-many-times-each-distinct-element-in-a-list-occurs
 frequency :: (Ord a) => [a] -> [(a, Int)]
 frequency xs = toList (fromListWith (+) [(x, 1) | x <- xs])

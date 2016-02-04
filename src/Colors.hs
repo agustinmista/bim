@@ -2,6 +2,7 @@ module Colors where
 
 import Pixel
 
+-- Colores basados en la especificación HTML 4.01
 white  = (255, 255, 255) :: Pixel
 silver = (192, 192, 192) :: Pixel
 grey   = (128, 128, 128) :: Pixel
