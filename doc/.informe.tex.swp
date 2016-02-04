@@ -364,28 +364,28 @@ La mayor limitación de BIM es que, actualmente, sólo puede operar sobre imáge
 		\item \textbf{Image Processing Learning Resources}.\\
 		Robert Fisher, Simon Perkins, Ashley Walker, Erik Wolfart\\
 		University of Edinburgh\\
-		\footnotesize{\url{http://homepages.inf.ed.ac.uk/rbf/HIPR2/hipr_top.htm}}\\
+		{\footnotesize \url{http://homepages.inf.ed.ac.uk/rbf/HIPR2/hipr_top.htm}}\\
 		
 		\item \textbf{Fundamentals of Image Processing}.\\		
 		Ian T. Young, Jan J. Gerbrands, Lucas J. van Vliet\\
 		Delft University of Technology\\
-		\footnotesize{\url{http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/TUDELFT/FIP2_3.pdf}}\\
+		{\footnotesize \url{http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/TUDELFT/FIP2_3.pdf}}\\
 		
 		\item \textbf{Basic image processing methods}.\\		
 		Marcin Kiełczewski\\
 		Poznań University of Technology\\
-		\footnotesize{\url{http://etacar.put.poznan.pl/marcin.kielczewski/VBC5.pdf}}\\
+		{\footnotesize \url{http://etacar.put.poznan.pl/marcin.kielczewski/VBC5.pdf}}\\
 		
 		\item \textbf{GIMP Documentation}.\\
-		\footnotesize{\url{http://docs.gimp.org/2.6/en/}}\\
+		{\footnotesize \url{http://docs.gimp.org/2.6/en/}}\\
 		
 		\item \textbf{Image Kernels explained visually}.\\
 		Victor Powell\\
-		\footnotesize{\url{http://setosa.io/ev/image-kernels/}}\\
+		{\footnotesize \url{http://setosa.io/ev/image-kernels/}}\\
 		
 		\item \textbf{Padding of Borders}.\\
 		Czech Technical University in Prague\\
-		\footnotesize{\url{http://radio.feld.cvut.cz/matlab/toolbox/images/linfilt4.html}}\\
+		{\footnotesize \url{http://radio.feld.cvut.cz/matlab/toolbox/images/linfilt4.html}}\\ 
 	\end{itemize}
 \pagebreak
 
