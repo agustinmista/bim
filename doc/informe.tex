@@ -125,7 +125,7 @@ Analizaremos también las decisiones importantes que se tomaron a la hora de imp
 	\begin{itemize}
 	    \item El proceso de manipulación de imágenes es representado por una computación que puede tener éxito, devolviendo una imagen, o fallar, devolviendo un mensaje con información del error sucedido. (\texttt{Result})
 		\item Un mapa de bits (\texttt{Bitmap}) es representado como una matriz de píxeles. 
-		\item Un \texttt{píxel} es representado como una tupla de valores enteros	  (R,G,B) con valores permitidos entre 0-255 (8 bits).
+		\item Un \texttt{Pixel} es representado como una tupla de valores enteros	  (R,G,B) con valores permitidos entre 0-255 (8 bits).
 		\item Un punto en el plano (\texttt{Point2D}) es representado como una tupla de valores enteros (X,Y). Convenimos que el origen de coordenadas se encuentra en la esquina superior izquierda de una imagen.
 	\end{itemize} 
 
@@ -487,7 +487,7 @@ modify :: Image a => (Int -> Int) -> Result a -> Result a
 \end{lstlisting}
 		\item \texttt{modifyCh}: modifica cada valor de cada pixel de un determinado canal (R,G o B) mediante una función.
 \begin{lstlisting} 
-modifyCh :: Image a => Channel -> (Int -> Int) -> Result a -> Result a
+modifyCh :: Image a => Channel -> (Int->Int) -> Result a -> Result a
 \end{lstlisting}
 		\item \texttt{(\#>)}: devuelve un canal.
 \begin{lstlisting} 
@@ -503,7 +503,7 @@ mono :: Image a => ConvMethod -> Result a -> Result a
 \end{lstlisting}
 		\item \texttt{threshold, binary}: Threshold color y binario, mediante algún método de conversión.
 \begin{lstlisting} 
-threshold, binary :: Image a => ConvMethod -> Float -> Result a -> Result a
+threshold,binary::Image a => ConvMethod-> Float-> Result a-> Result a
 \end{lstlisting}
 
 	\end{itemize}	
