@@ -8,7 +8,7 @@ import Image
 
 -- Modificar el valor de un pixel mediante una función
 modify :: Image a => (Int -> Int) -> Result a -> Result a
-modify f = pixelTrans (\size-> pixelMap f)
+modify f = pixelTrans (\size -> pixelMap f)
 
 -- Modificar el valor de un nivel particular mediante una función
 modifyCh :: Image a => Channel -> (Int -> Int) -> Result a -> Result a

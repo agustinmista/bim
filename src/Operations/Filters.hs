@@ -11,7 +11,7 @@ import Data.List (sortBy)
 import Image
 import Operations.Arithmetic
 
--- Erosion y dilation, de radio r
+-- Erosion y dilatación, de radio r
 erosion :: Image a => Int -> Result a -> Result a
 erosion r = localTrans r (fold min white)
 

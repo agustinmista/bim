@@ -9,4 +9,4 @@ testPalette = do
     save "tests/outputs/paletteLena.bmp" lp
             where underPalette img = do
                     m <- img
-                    palette (m~>X, m~>X *> (1/6)) 6 img
+                    palette (m~>X, m~>X %> (1/6)) 6 img
