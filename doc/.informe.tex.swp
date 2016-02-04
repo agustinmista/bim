@@ -461,7 +461,7 @@ blend :: Image a => Float -> Result a -> Result a -> Result a
 %------------------------------------------------	
 \subsection*{Operations.Filters}
 	\begin{itemize} 
-		\item \texttt{erosion, dilation}: erosión y dilatación de imágenes, con determinado radio.
+		\item \texttt{erosion, dilation}: erosión y dilatación de imágenes, con determinado radio. Internamente usa conversión por luminancia para comparar pixeles, por lo que en imágenes a color tiene un efecto de erosionar o dilatar los pixeles más brillantes.
 \begin{lstlisting}
 erosion, dilation :: Image a => Int -> Result a -> Result a
 \end{lstlisting}
