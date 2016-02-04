@@ -1,11 +1,15 @@
 module Operations.Geometric (
-    crop, overlap,
+    solid, crop, overlap,
     scale, scale2D, scaleTo,
     rot90, rot180, rot270,
     reflect, (<|>), (</>),
 ) where
 
 import Image
+
+-- Crea una imagen de color sólido de determinado tamaño
+solid :: Image a => Pixel -> Point2D -> Result a
+solid c s = create (\_ -> c) s
 
 -- Recorte entre dos puntos
 crop :: Image a => Point2D -> Point2D -> Result a -> Result a

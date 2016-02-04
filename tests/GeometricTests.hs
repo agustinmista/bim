@@ -1,11 +1,15 @@
 import BIM
 
 testAll = do
+    testSolid
     testCrop
     testOverlap
     testScale
     testRotations
     testReflections
+
+-- solid
+testSolid = save "tests/outputs/solid.bmp" (solid navy (250,250))
 
 -- crop
 testCrop = do

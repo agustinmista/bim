@@ -108,7 +108,7 @@
 
 La manipulación digital de imágenes es usualmente un proceso gráfico, ésto es, si consideramos que las fotos de nuestras últimas vacaciones necesitan algún retoque, las abrimos en algún software específico de manipulación de imágenes con interfaz gráfica, navegamos entre ventanas de diálogo, movemos controles deslizantes, y rellenamos tantas cajas de texto como sea necesario hasta encontrar el fino equilibrio que buscamos, siendo éste un trabajo que puede llevar un tiempo considerable.
 
-En éste informe veremos un enfoque distinto del proceso de manipulación digital de imágenes, orientado a la programación de pequeños scripts mediante BIM, un lenguaje específico de dominio embebido en Haskell, que nos permite describir el proceso de retocar o crear una nueva imágen de manera sencilla, con una sintaxis concisa y una semántica composicional diseñada para encadenar operaciones fácilmente.
+En éste informe veremos un enfoque distinto del proceso de manipulación digital de imágenes, orientado a la programación de pequeños scripts mediante BIM, un lenguaje de dominio específico embebido en Haskell, que nos permite describir el proceso de retocar o crear una nueva imagen de manera sencilla, con una sintaxis concisa y una semántica composicional diseñada para encadenar operaciones fácilmente.
 
 Analizaremos también las decisiones importantes que se tomaron a la hora de implementar este software, sus limitaciones, y aspectos que podrían mejorarse en un futuro.
 
@@ -123,9 +123,9 @@ Analizaremos también las decisiones importantes que se tomaron a la hora de imp
 	Para describir el funcionamiento de este software, lo primero que debemos considerar es como se representaron los conceptos fundamentales sobre los que trabajamos:
 
 	\begin{itemize}
-	    \item El proceso de manipulación de imágenes es representado por una computación que puede tener éxito, devolviendo una imágen, o fallar, devolviendo un mensaje con información del error sucedido. (\texttt{Result})
-		\item Un mapa de bits (\texttt{Bitmap}) es representado como una matriz de pixeles. 
-		\item Un \texttt{Pixel} es representado como una tupla de valores enteros	  (R,G,B) con valores permitidos entre 0-255 (8 bits).
+	    \item El proceso de manipulación de imágenes es representado por una computación que puede tener éxito, devolviendo una imagen, o fallar, devolviendo un mensaje con información del error sucedido. (\texttt{Result})
+		\item Un mapa de bits (\texttt{Bitmap}) es representado como una matriz de píxeles. 
+		\item Un \texttt{píxel} es representado como una tupla de valores enteros	  (R,G,B) con valores permitidos entre 0-255 (8 bits).
 		\item Un punto en el plano (\texttt{Point2D}) es representado como una tupla de valores enteros (X,Y). Convenimos que el origen de coordenadas se encuentra en la esquina superior izquierda de una imagen.
 	\end{itemize} 
 
@@ -133,12 +133,12 @@ Analizaremos también las decisiones importantes que se tomaron a la hora de imp
 	
 	\textbf{Combinadores:}
 	\begin{itemize}
-		\item Una función para crear imágenes, a partir de un tamaño, y una función que asigne un pixel a cada punto dentro de la misma: 
+		\item Una función para crear imágenes, a partir de un tamaño, y una función que asigne un píxel a cada punto dentro de la misma: 
 		\begin{lstlisting}
 create :: (Point2D -> Pixel) -> Point2D -> Result a
 		\end{lstlisting}
 
-		\item Una función para manipular imágenes puntualmente, que a partir de (quizá) una imagen, y una función que mapea pixeles en pixeles, devuelva (quizá) una nueva imagen:
+		\item Una función para manipular imágenes puntualmente, que a partir de (quizá) una imagen, y una función que mapea píxeles en píxeles, devuelva (quizá) una nueva imagen:
 		\begin{lstlisting}
 pixelTrans :: (Point2D -> Pixel -> Pixel) -> Result a -> Result a
 		\end{lstlisting}
@@ -148,7 +148,7 @@ pixelTrans :: (Point2D -> Pixel -> Pixel) -> Result a -> Result a
 			\end{center}
 		\end{figure}
 			  
-		\item Una función para manipular imágenes localmente, que a partir de (quizá) una imagen, y una función que mapea el área alrededor de un pixel (con determinado radio) en un nuevo pixel, y devuelva (quizá) una nueva imagen:
+		\item Una función para manipular imágenes localmente, que a partir de (quizá) una imagen, y una función que mapea el área alrededor de un píxel (con determinado radio) en un nuevo píxel, y devuelva (quizá) una nueva imagen:
 		\begin{lstlisting}
 localTrans :: Int -> (a -> Pixel) -> Result a -> Result a
 		\end{lstlisting}
@@ -166,29 +166,29 @@ localTrans :: Int -> (a -> Pixel) -> Result a -> Result a
 (~>) :: a -> Dim -> Int
 		\end{lstlisting}
 
-		\item Una función que dada una imagen, y una posición en el plano devuelva el pixel en esa posición (o error en caso de que la posición esté fuera de rango):
+		\item Una función que dada una imagen, y una posición en el plano devuelva el píxel en esa posición (o error en caso de que la posición esté fuera de rango):
 		\begin{lstlisting}
 (!) :: a -> Point2D -> Pixel
 		\end{lstlisting}
 			  
-		\item Una función que permita consumir una imagen retornando un valor, recorriendo pixel por pixel y combinándolos mediante una función y un elemento \textit{"neutro"}:
+		\item Una función que permita consumir una imagen retornando un valor, recorriendo píxel por píxel y combinándolos mediante una función y un elemento \textit{"neutro"}:
 		\begin{lstlisting}
 fold :: (Pixel -> b -> b) -> b -> a -> b
 		\end{lstlisting}
 	\end{itemize}
 	
-\noindent Luego, dimos una instancia de imagen para nuestra representación de mapas de bits (\texttt{Image Bitmap}), con ésto conseguimos una forma de implementar operaciones sobre imágenes sin tener en cuenta la implementación subyacente, y permitiendo cambiar ésta por una de mejor performance de ser necesario, sin preocuparnos por lo implementado encima de ella.
+\noindent Luego, dimos una instancia de imagen para nuestra representación de mapas de bits (\texttt{Image Bitmap}), con esto conseguimos una forma de implementar operaciones sobre imágenes sin tener en cuenta la implementación subyacente, y permitiendo cambiar ésta por una de mejor performance de ser necesario, sin preocuparnos por lo implementado encima de ella.
 
 \pagebreak
 
 \noindent Lo anterior describe un centro de computaciones puras, es decir, no tiene acceso al mundo real. Para poder operar con imágenes guardadas en disco, y poder guardar las nuevas imágenes, implementamos operaciones que interactúen con el sistema de archivos:
 	\begin{itemize}
-		\item Carga (quizá) una imagen a partir de la ruta a la misma, parseando las cabeceras y desempaquetando la información almacenada de manera continua en una matriz de pixeles (\texttt{Bitmap}):  
+		\item Carga (quizá) una imagen a partir de la ruta a la misma, parseando las cabeceras y desempaquetando la información almacenada de manera continua en una matriz de píxeles (\texttt{Bitmap}):  
 		\begin{lstlisting}
 load :: String -> IO (Result Bitmap)
 		\end{lstlisting}
 
-		\item Guarda una imagen a disco, generando cabeceras y empaquetando en forma continua los pixeles de la misma, o bien, informa de un error ocurrido mientras se manipulaba la misma:
+		\item Guarda una imagen a disco, generando cabeceras y empaquetando en forma continua los píxeles de la misma, o bien, informa de un error ocurrido mientras se manipulaba la misma:
 		\begin{lstlisting}
 save :: String -> Result Bitmap -> IO ()
 		\end{lstlisting}
@@ -196,10 +196,10 @@ save :: String -> Result Bitmap -> IO ()
 
 \noindent Finalmente, para darle utilidad real a nuestro lenguaje, derivamos (a partir de las operaciones fundamentales) varios grupos de operaciones de uso cotidiano que operan sobre una o más imágenes:
 	\begin{itemize}
-		\item Aritméticas: suma, resta, multiplicacion, mezcla, etc..
+		\item Aritméticas: suma, resta, multiplicación, mezcla, etc..
 		\item Geométricas: cortar, unir, rotar, reflejar, etc..
-		\item Puntuales: canales, modificar, negativo, conversion a B\&W, etc..
-		\item Filtros: gaussiano, deteccion de bordes, enfoque, grabado, etc..
+		\item Puntuales: canales, modificar, negativo, conversión a B\&W, etc..
+		\item Filtros: gaussiano, detección de bordes, enfoque, grabado, etc..
 		\item Paleta: lista de colores dominantes, paleta de colores.
 		\item Histograma: guardar a disco, plotear en gnuplot.
 	\end{itemize}
@@ -240,7 +240,7 @@ test = do
    ...
 \end{lstlisting}
 
-\noindent y termina realizando una o más operaciónes de salida sobre alguna imagen obtenida usando las operaciones sobre las mismas:
+\noindent y termina realizando una o más operaciones de salida sobre alguna imagen obtenida usando las operaciones sobre las mismas:
 \begin{lstlisting}
 test = do
    lena <- load "img/lena.bmp"
@@ -286,7 +286,7 @@ test = do
 
 \section*{Organización}
 
-	A continuación se describe la jerarquía de archivos que conforman este software, como así tambien el propósito de cada uno de ellos:
+	A continuación se describe la jerarquía de archivos que conforman este software, como así también el propósito de cada uno de ellos:
 
 	\begin{itemize}
 		\item \textbf{doc/}: Contiene éste informe y las imágenes incrustadas en él.
@@ -294,18 +294,18 @@ test = do
 		\item \textbf{tests/}: Contiene tests a cada operación, usando las imágenes de prueba.
 		\item \textbf{src/}: Contiene el código fuente de este software, organizado en los siguientes módulos de Haskell:
 			\begin{itemize}
-				\item \textbf{Pixel}: Define la implementación de los pixeles, y las operaciones relacionadas a la manipulación de los mismos.
+				\item \textbf{Pixel}: Define la implementación de los píxeles, y las operaciones relacionadas a la manipulación de los mismos.
 				\item \textbf{Colors}: Define 16 colores básicos, que se corresponden con aquellos predefinidos en \textbf{HTML}. 
 				\item \textbf{Image}: Define el TAD \textbf{Image}, la manipulación de imágenes tolerante a fallas (\textbf{Result}) y reexporta los dos módulos vistos arriba.
 				\item \textbf{Bitmap}: Define la implementación de los mapas de bits y las operaciónes de entrada/salida sobre los mismos.
 				\item El directorio \textbf{src/Operations/} describe los módulos que implementan operaciones sobre imágenes derivadas a partir de las primitivas:
 				\begin{itemize}
-					\item \textbf{Arithmetic}: Implementa operaciónes aritméticas.
-					\item \textbf{Geometric}: Implementa operaciónes geométricas.
-					\item \textbf{Point}: Implementa operaciónes que usan tranformaciones puntuales.
+					\item \textbf{Arithmetic}: Implementa operaciones aritméticas.
+					\item \textbf{Geometric}: Implementa operaciones geométricas.
+					\item \textbf{Point}: Implementa operaciones que usan transformaciones puntuales.
 					\item \textbf{Filters}: Implementa operaciones que usan transformaciones locales, e implementa convolution kernels (a.k.a.\;filtros genéricos).
 					\item \textbf{Palette}: Implementa operaciones para obtener colores dominantes y generar paletas de los mismos.
-					\item \textbf{Histogram}: Implementa operaciones para calcular el histograma de una imágen, y aquellas necesarias para interactuar con Gnuplot usando el wrapper de la libreria EasyPlot
+					\item \textbf{Histogram}: Implementa operaciones para calcular el histograma de una imagen, y aquellas necesarias para interactuar con Gnuplot usando el wrapper de la librería EasyPlot
 				\end{itemize}
 			\item \textbf{src/BIM.hs}: Instancia los mapas de bits a \textbf{Image}, implementando las operaciones primitivas sobre imágenes, y reexporta todos los módulos vistos anteriormente, siendo éste el módulo principal de nuestro software, y el único que necesita importarse para ser usado por completo.
 			\end{itemize}
@@ -323,26 +323,26 @@ Durante el período de diseño e implementación de BIM debieron tomarse algunas
 		
 		\item Para la lectura y escritura de las imágenes a disco, se usó la librería \textbf{Codec.BMP} que implementa funciones útiles para el parseo y generación de cabeceras.
 		
-		\item Para la representación de matrices de pixeles, se usó la librería \\ \textbf{Data.Matrix} que cuenta con operaciónes dedicadas a operar eficientemente sobre matrices.
+		\item Para la representación de matrices de píxeles, se usó la librería \\ \textbf{Data.Matrix} que cuenta con operaciones dedicadas a operar eficientemente sobre matrices.
 	
-		\item Debido a que el formato \texttt{bmp} almacena los pixeles en filas desde abajo hacia arriba, una conversión directa de la imagen a una matriz de pixeles utilizando las operaciones primitivas de \textbf{Codec.BMP} y \textbf{Data.Matrix} resulta en una imagen volteada horizontalmente. Dado esto, se decidió que la operación de lectura invierta el orden de las filas con el fin de representarse en la matriz de pixeles de la manera intuitiva, volviéndose a invertir a la hora de ser guardadas nuevamente a disco.	
+		\item Debido a que el formato \texttt{bmp} almacena los píxeles en filas desde abajo hacia arriba, una conversión directa de la imagen a una matriz de píxeles utilizando las operaciones primitivas de \textbf{Codec.BMP} y \textbf{Data.Matrix} resulta en una imagen volteada horizontalmente. Dado esto, se decidió que la operación de lectura invierta el orden de las filas con el fin de representarse en la matriz de píxeles de la manera intuitiva, volviéndose a invertir a la hora de ser guardadas nuevamente a disco.	
 		
-		\item Para el caso del cálculo del histograma de una imagen, se decidió usar la librería EasyPlot y el software de ploteo numérico Gnuplot, ya que ésto daría mayor versatilidad al mismo, pudiéndose visualizar en una ventana interactiva, o bien ser guardado a disco en múltiples formatos de imagen.
+		\item Para el caso del cálculo del histograma de una imagen, se decidió usar la librería EasyPlot y el software de ploteo numérico Gnuplot, ya que esto daría mayor versatilidad al mismo, pudiéndose visualizar en una ventana interactiva, o bien ser guardado a disco en múltiples formatos de imagen.
 
 		
-		\item Para la representación de los pixeles, podría haberse usado el tipo \textbf{Word8} para los valores de cada canal, sabiendo que los valores permitidos están entre 0-255 (8 bits), pero surgieron dos cuestiones:
+		\item Para la representación de los píxeles, podría haberse usado el tipo \textbf{Word8} para los valores de cada canal, sabiendo que los valores permitidos están entre 0-255 (8 bits), pero surgieron dos cuestiones:
 		\begin{itemize} 
-			\item Al operar aritméticamente sobre pixeles puede darse el caso de que el nuevo valor no caiga dentro de los valores permitidos, dándose lo que se conoce como \textit{\href{http://homepages.inf.ed.ac.uk/rbf/HIPR2/wrap.htm}{pixel overflow}}. Para resolver esto, se debe escoger una técnica adecuada según el comportamiento que deseamos modelar, siendo las más comunes las de \textit{wrapping} y \textit{saturation}. En la primera, los valores se comportan de manera cíclica, volviendo a 0 si se sobrepasa el valor máximo; en la última, cualquier resultado que exceda los límites permitidos queda atada a valores mínimos y máximos. En nuestro caso deseamos que los pixeles tengan el comportamiento esperable, es decir, si agregamos mucho brillo a una imagen ésta resulta sobreexpuesta, pero nunca con valores oscuros resultado un comportamiento cíclico, siendo este último comportamiento del tipo \textbf{Word8} ante un overflow.
+			\item Al operar aritméticamente sobre píxeles puede darse el caso de que el nuevo valor no caiga dentro de los valores permitidos, dándose lo que se conoce como \textit{\href{http://homepages.inf.ed.ac.uk/rbf/HIPR2/wrap.htm}{píxel overflow}}. Para resolver esto, se debe escoger una técnica adecuada según el comportamiento que deseamos modelar, siendo las más comunes las de \textit{wrapping} y \textit{saturation}. En la primera, los valores se comportan de manera cíclica, volviendo a 0 si se sobrepasa el valor máximo; en la última, cualquier resultado que exceda los límites permitidos queda atada a valores mínimos y máximos. En nuestro caso deseamos que los píxeles tengan el comportamiento esperable, es decir, si agregamos mucho brillo a una imagen ésta resulta sobreexpuesta, pero nunca con valores oscuros resultado un comportamiento cíclico, siendo este último comportamiento del tipo \textbf{Word8} ante un overflow.
 			\item La segunda cuestión, aunque menos importante, resulta ser la gran cantidad de conversiones entre tipos de datos que deberían aplicarse si se usase el tipo \textbf{Word8}, ya que los valores numéricos usados en las operaciones son generalmente de tipo \textbf{Int}
 		\end{itemize}
 		Dado esto, decidimos usar un tipo de datos que soporte operaciones aritméticas de mayor tamaño (\textbf{Int}), y validar los resultados mediante una función auxiliar (\textbf{validate}), todo esto a costa de un mayor consumo de memoria.
 		
-		\item A la hora de implementar las transformaciones locales de imágenes, debimos elegir como representaríamos los pixeles que quedasen fuera de la imagen, pero dentro del radio de la transformación, fenómeno que sucede en los bordes de la misma. Existen varias aproximaciones para resolver este problema conocido como \textit{padding}:
+		\item A la hora de implementar las transformaciones locales de imágenes, debimos elegir como representaríamos los píxeles que quedasen fuera de la imagen, pero dentro del radio de la transformación, fenómeno que sucede en los bordes de la misma. Existen varias aproximaciones para resolver este problema conocido como \textit{padding}:
 			\begin{itemize}
-				\item Computar la transformación sólo en aquellos pixeles cuyos vecinos están bien definidos, sin agregar bordes, resultando en una imagen más pequeña que la original.
-				\item \textbf{Zero padding}: se extiende la imágen usando pixeles nulos (negros). Sencillo de implementar, pero produce transformaciones que oscurecen los bordes.
-				\item \textbf{Mirror extension}: al llegar a un borde, se usan los pixeles más cercanos del borde contrario. Puede producir efectos no deseados si los bordes opuestos de una imagen son muy distintos.
-				\item \textbf{Border extension}: se extiende la imágen con un borde del radio de la transformación, donde cada pixel del mismo replica a su vecino más cercano dentro de la imagen original. Relativamente sencillo de implementar y produce buenos resultados en la mayoría de los casos, por lo que fue el método que usamos para implementar el padding en nuestro software.
+				\item Computar la transformación sólo en aquellos píxeles cuyos vecinos están bien definidos, sin agregar bordes, resultando en una imagen más pequeña que la original.
+				\item \textbf{Zero padding}: se extiende la imagen usando píxeles nulos (negros). Sencillo de implementar, pero produce transformaciones que oscurecen los bordes.
+				\item \textbf{Mirror extension}: al llegar a un borde, se usan los píxeles más cercanos del borde contrario. Puede producir efectos no deseados si los bordes opuestos de una imagen son muy distintos.
+				\item \textbf{Border extension}: se extiende la imagen con un borde del radio de la transformación, donde cada píxel del mismo replica a su vecino más cercano dentro de la imagen original. Relativamente sencillo de implementar y produce buenos resultados en la mayoría de los casos, por lo que fue el método que usamos para implementar el padding en nuestro software.
 			\end{itemize}
 		
 		
@@ -354,7 +354,7 @@ Durante el período de diseño e implementación de BIM debieron tomarse algunas
 
 La mayor limitación de BIM es que, actualmente, sólo puede operar sobre imágenes en formato \texttt{bmp}, por lo que intentar cargar imágenes en cualquier otro formato resultaría en un error de parseo. Ésto sería lo más importante a resolver en un futuro cercano.\\
 
-\noindent Otra limitación apreciable es que si bien el formato \texttt{bmp} admite el manejo de transparencia, mediante pixeles \textbf{RGBA} de 32bits, \textbf{Codec.BMP} no soporta la escritura de éste tipo de imágenes. Por lo que actualmente el canal \textit{alpha} es ignorado. 
+\noindent Otra limitación apreciable es que si bien el formato \texttt{bmp} admite el manejo de transparencia, mediante píxeles \textbf{RGBA} de 32bits, \textbf{Codec.BMP} no soporta la escritura de éste tipo de imágenes. Por lo que actualmente el canal \textit{alpha} es ignorado. 
 
 %------------------------------------------------
 
@@ -394,19 +394,6 @@ La mayor limitación de BIM es que, actualmente, sólo puede operar sobre imáge
 \section*{Apéndice}
 Descripción de operadores según el módulo al que pertenecen:
 
-	
-\subsection*{Bitmap}
-	\begin{itemize} 
-		\item \texttt{load}: carga una imagen desde un archivo, en caso de error devuelve un mensaje descriptivo.
-\begin{lstlisting}
-load :: String -> IO (Result Bitmap)
-\end{lstlisting}
-		\item \texttt{save}: guarda una imagen a disco, en caso de que la imagen sea inválida, informa el error que ésta acarrea.
-\begin{lstlisting} 
-save :: String -> Result Bitmap -> IO ()
-\end{lstlisting}
-	\end{itemize}
-	
 \subsection*{Image}
 	\begin{itemize} 
 		\item \texttt{create}: crea una imagen a partir de una función.
@@ -444,6 +431,35 @@ fold :: (Pixel -> b -> b) -> b -> a -> b
 	\end{itemize}
 
 %------------------------------------------------
+	
+\subsection*{Pixel}
+	\begin{itemize} 
+		\item \texttt{pixelMap}: mapea una función sobre un píxel.
+\begin{lstlisting}
+pixelMap :: (Int -> Int) -> Pixel -> Pixel
+\end{lstlisting}
+		\item \texttt{(\%>)}: multiplica un valor entero por una constante real.
+\begin{lstlisting} 
+(%>) :: Int -> Float -> Int
+\end{lstlisting}
+	\end{itemize}
+
+%------------------------------------------------	
+	
+\subsection*{Bitmap}
+	\begin{itemize} 
+		\item \texttt{load}: carga una imagen desde un archivo, en caso de error devuelve un mensaje descriptivo.
+\begin{lstlisting}
+load :: String -> IO (Result Bitmap)
+\end{lstlisting}
+		\item \texttt{save}: guarda una imagen a disco, en caso de que la imagen sea inválida, informa el error que ésta acarrea.
+\begin{lstlisting} 
+save :: String -> Result Bitmap -> IO ()
+\end{lstlisting}
+	\end{itemize}
+	
+%------------------------------------------------
+
 \subsection*{Operations.Arithmetic}
 	\begin{itemize} 
 		\item \texttt{(+),(-),(*)}: operaciones aritméticas sobre imágenes.
@@ -460,10 +476,43 @@ blend :: Image a => Float -> Result a -> Result a -> Result a
 \end{lstlisting}
 
 	\end{itemize}
+	
 %------------------------------------------------	
+
+\subsection*{Operations.Point}
+	\begin{itemize} 
+		\item \texttt{modify}: modifica cada valor de cada píxel mediante una función.
+\begin{lstlisting} 
+modify :: Image a => (Int -> Int) -> Result a -> Result a
+\end{lstlisting}
+		\item \texttt{modifyCh}: modifica cada valor de cada pixel de un determinado canal (R,G o B) mediante una función.
+\begin{lstlisting} 
+modifyCh :: Image a => Channel -> (Int -> Int) -> Result a -> Result a
+\end{lstlisting}
+		\item \texttt{(\#>)}: devuelve un canal.
+\begin{lstlisting} 
+(#>) :: Image a => Result a -> Channel -> Result a
+\end{lstlisting}
+		\item \texttt{negative}: negativo de una imagen.
+\begin{lstlisting} 
+negative :: Image a => Result a -> Result a
+\end{lstlisting}
+		\item \texttt{mono}: conversión a monocromo, mediante algún método de conversion (lum: Luminancia, lig: Luminosidad, avg: Promedio).
+\begin{lstlisting} 
+mono :: Image a => ConvMethod -> Result a -> Result a
+\end{lstlisting}
+		\item \texttt{threshold, binary}: Threshold color y binario, mediante algún método de conversión.
+\begin{lstlisting} 
+threshold, binary :: Image a => ConvMethod -> Float -> Result a -> Result a
+\end{lstlisting}
+
+	\end{itemize}	
+
+%------------------------------------------------
+
 \subsection*{Operations.Filters}
 	\begin{itemize} 
-		\item \texttt{erosion, dilation}: erosión y dilatación de imágenes, con determinado radio. Internamente usa conversión por luminancia para comparar pixeles, por lo que en imágenes a color tiene un efecto de erosionar o dilatar los pixeles más brillantes.
+		\item \texttt{erosion, dilation}: erosión y dilatación de imágenes, con determinado radio. Internamente usa conversión por luminancia para comparar píxeles, por lo que en imágenes a color tiene un efecto de erosionar o dilatar los píxeles más brillantes.
 \begin{lstlisting}
 erosion, dilation :: Image a => Int -> Result a -> Result a
 \end{lstlisting}
@@ -475,6 +524,7 @@ mean :: Image a => Int -> Result a -> Result a
 \begin{lstlisting}
 median :: Image a => Int -> Result a -> Result a
 \end{lstlisting}
+
 		\item \texttt{convolution}: aplica un convolution kernel de determinado radio, representado mediante una lista de valores. Retorna error si el radio no se corresponde con el tamaño de la lista.
 \begin{lstlisting}
 convolution :: Image a 
@@ -518,6 +568,10 @@ emboss :: Image a => Result a -> Result a
 %------------------------------------------------	
 \subsection*{Operations.Geometric}
 	\begin{itemize} 
+		\item \texttt{solid}: crea una imagen de color sólido de determinado tamaño.
+\begin{lstlisting}
+solid :: Image a => Pixel -> Point2D -> Result a
+\end{lstlisting}
 		\item \texttt{crop}: recorte entre dos puntos. Si los puntos están fuera de la imágen, el recorte llega hasta el borde.
 \begin{lstlisting}
 crop :: Image a => Point2D -> Point2D -> Result a -> Result a
@@ -549,7 +603,7 @@ scaleTo :: Image a => Point2D -> Result a -> Result a
 \begin{lstlisting}
 rot90, rot180, rot270 :: Image a => Result a -> Result a
 \end{lstlisting}
-\pagebreak
+
 		\item \texttt{reflect}: reflecciones sobre algún eje (X o Y).
 \begin{lstlisting}
 reflect :: Image a => Dim -> Result a -> Result a
@@ -565,38 +619,8 @@ reflect :: Image a => Dim -> Result a -> Result a
 
 	\end{itemize}
 	
-%------------------------------------------------		
-\subsection*{Operations.Point}
-	\begin{itemize} 
-		\item \texttt{modify}: modifica cada valor de cada pixel mediante una función.
-\begin{lstlisting} 
-modify :: Image a => (Int -> Int) -> Result a -> Result a
-\end{lstlisting}
-		\item \texttt{modifyCh}: modifica cada valor de cada pixel de un determinado canal (R,G o B) mediante una función.
-\begin{lstlisting} 
-modifyCh :: Image a => Channel -> (Int -> Int) -> Result a -> Result a
-\end{lstlisting}
-		\item \texttt{(\#>)}: devuelve un canal.
-\begin{lstlisting} 
-(#>) :: Image a => Result a -> Channel -> Result a
-\end{lstlisting}
-		\item \texttt{negative}: negativo de una imagen.
-\begin{lstlisting} 
-negative :: Image a => Result a -> Result a
-\end{lstlisting}
-		\item \texttt{mono}: conversión a monocromo, mediante algún método de conversion (lum: Luminancia, lig: Luminosidad, avg: Promedio).
-\begin{lstlisting} 
-mono :: Image a => ConvMethod -> Result a -> Result a
-\end{lstlisting}
-		\item \texttt{threshold, binary}: Threshold color y binario, mediante algún método de conversión.
-\begin{lstlisting} 
-threshold, binary :: Image a => ConvMethod -> Float -> Result a -> Result a
-\end{lstlisting}
+%------------------------------------------------				
 
-	\end{itemize}	
-
-\pagebreak
-%------------------------------------------------		
 \subsection*{Operations.Histogram}
 	\begin{itemize} 
 		\item \texttt{plotHist}: muestra un histograma en una ventana de Gnuplot.
@@ -625,19 +649,5 @@ dominants :: Image a => Int -> a -> [Pixel]
 palette :: Image a => Point2D -> Int -> Result a -> Result a
 \end{lstlisting}
 	\end{itemize}
-	
-%------------------------------------------------		
-\subsection*{Pixel}
-	\begin{itemize} 
-		\item \texttt{pixelMap}: mapea una funcion sobre un pixel.
-\begin{lstlisting}
-pixelMap :: (Int -> Int) -> Pixel -> Pixel
-\end{lstlisting}
-		\item \texttt{(\%>)}: multiplica un valor entero por una constante real.
-\begin{lstlisting} 
-(%>) :: Int -> Float -> Int
-\end{lstlisting}
-	\end{itemize}
-
 
 \end{document}
